@@ -2,36 +2,39 @@
 
 This playbook scans source cluster PVCs in a `namespaces_to_migrate` list provided by the user and generates info needed by stage 2 for destination cluster PVC creation and data sync.
 
-## Usage:
+## Usage
 
 1. Before running stage 1, ensure you have completed [prerequisite steps](https://github.com/konveyor/pvc-migrate#prerequisite-steps) and have installed required [automation prerequisites](https://github.com/konveyor/pvc-migrate#2-automation-prerequisites).
 
-1. Create your own copy of vars file 
-```
+1. Create your own copy of vars file
+
+```bash
 cp vars/pvc-data-gen.yml.example vars/pvc-data-gen.yml
 ```
 
-2. Edit `vars/pvc-data-gen.yml` adding a list of namespaces
-```
+1. Edit `vars/pvc-data-gen.yml` adding a list of namespaces
+
+```yaml
 namespaces_to_migrate:
 - rocket-chat
 - mssql-persistent
 ```
 
-3. Run script while KUBECONFIG is set for connection to **source cluster**
-```
+1. Run script while KUBECONFIG is set for connection to **source cluster**
+
+```bash
 export KUBECONFIG="/path/to/src_cluster_kubeconfig"
-python3 pvc_data_gen.py 
+python3 pvc_data_gen.py
 ```
 
-4. Move on to [Stage 2](../2_pvc_destination_gen)
+1. Move on to [Stage 2](../2_pvc_destination_gen)
 
 ---
 
 Sample generated output
 
+### node-list.json
 
-**output/node-list.json**
 ```bash
 cat output/node-list.json
 [
@@ -41,7 +44,8 @@ cat output/node-list.json
 ]
 ```
 
-**output/namespace-data.json**
+### namespace-data.json
+
 ```bash
 cat output/namespace-data.json
 [
@@ -61,9 +65,10 @@ cat output/namespace-data.json
 ]
 ```
 
-**output/pvc-data.json**
+### pvc-data.json
+
 ```bash
-cat output/pvc-data.json  
+cat output/pvc-data.json
 [
     {
         "namespace": "rocket-chat",

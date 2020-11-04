@@ -7,7 +7,7 @@ binary_ansible_playbook: /usr/bin/ansible-playbook
 binary_python: /usr/bin/python3
 
 # storage class mappings used for stage 2
-# make sure the values are correct based 
+# make sure the values are correct based
 # on your environment
 stage_2_storage_class_mappings:
   mig_storage_class_mappings:
@@ -15,7 +15,7 @@ stage_2_storage_class_mappings:
     glusterfs-storage_RWX: gp2
     glusterfs-storage-block_RWO: gp2
 
-# public and private key combination to be 
+# public and private key combination to be
 # used in rsync pod in Stage 3.
 rsync_pub_key: <public_key>
 rsync_private_key: <private_key>

@@ -9,7 +9,7 @@
       - assert_kubeconfig
       - stage_a
       - stage_b
- 
+
     - import_tasks: ../common/assert-vars.yml
       tags:
       - stage_a
@@ -48,7 +48,7 @@
       set_fact:
         pvc_data: "{{ lookup('file', pvc_data_filepath) | from_json }}"
         namespace_data: "{{ lookup('file', namespace_data_filepath) | from_json }}"
-    
+
     - tags:
       - adjust_pvs
       - stage_a
@@ -61,7 +61,7 @@
         loop: "{{ unique_nodes }}"
         loop_control:
           loop_var: node_name
-      
+
       - name: "Dumping adjusted volumes in the output directory"
         copy:
           content: "{{ adjusted_volumes | to_nice_json }}"
@@ -79,7 +79,7 @@
     - name: "Create pvcs on destination namespace"
       vars:
         pvcs: "{{ item.pvcs }}"
-      include_tasks: 
+      include_tasks:
         file: tasks/ensure-pvcs.yml
         apply:
           tags:

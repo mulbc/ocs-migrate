@@ -1,0 +1,68 @@
+# This task starts one kubernetes job per PVC that is supposed to be migrated
+# We wait until all the jobs are finished until we proceed
+
+- debug: msg="{{ item }}"
+
+- name: Loop over every PVC
+  loop: "{{ item.pvcs }}"
+  loop_control:
+    loop_var: pvc
+  block:
+    - debug:
+        msg: "{{ lookup('template', 'job.yml.j2') }}"
+
+    - name: Create a pod for rsync
+      k8s:
+        state: present
+        definition: "{{ lookup('template', 'job.yml.j2') }}"
+
+    - name: Wait for pod to be running
+      k8s_info:
+        api_version: v1
+        kind: pod
+        name: "{{ pvc.pod_name }}"
+        namespace: "{{ pvc.pvc_namespace }}"
+      register: pod
+      until: "'Running' in (pod | json_query('resources[].status.phase'))"
+      retries: "{{ transfer_pod_wait_retries }}"
+      delay: 3
+
+# - set_fact:
+#     failed_pvcs: []
+#     successful_pvcs: []
+
+
+- name: Loop over every PVC
+  loop: "{{ item.pvcs }}"
+  loop_control:
+    loop_var: pvc
+  block:
+    - name: Cleanup the transfer pod for rsync
+      k8s:
+        state: absent
+        definition: "{{ lookup('template', 'job.yml.j2') }}"
+
+    - name: Wait for pod to be deleted
+      k8s_info:
+        api_version: v1
+        kind: pod
+        name: "{{ pvc.pod_name }}"
+        namespace: "{{ pvc.pvc_namespace }}"
+      register: p
+      until: "{{ p.resources | length == 0 }}"
+      retries: "{{ transfer_pod_delete_wait_retries }}"
+      delay: 3
+
+# - name: "Printing failed / succeded pvcs"
+#   debug:
+#     msg: "{{ failed_pvcs }} {{ successful_pvcs }}"
+
+# - name: "Dumping failure report"
+#   copy:
+#     content: "{{ failed_pvcs | to_json }}"
+#     dest: "{{ failed_pvcs_dir }}/{{ pvc_namespace }}-failed.json"
+
+# - name: "Dumping success report"
+#   copy:
+#     content: "{{ successful_pvcs | to_json }}"
+#     dest: "{{ successful_pvcs_dir }}/{{ pvc_namespace }}-successful.json"

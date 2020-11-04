@@ -1,0 +1,22 @@
+repos:
+- repo: https://github.com/ansible/ansible-lint.git
+  rev: master
+  hooks:
+    - id: ansible-lint
+      files: \.(yaml|yml)$
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: master
+  hooks:
+  - id: trailing-whitespace
+  - id: check-case-conflict
+  - id: check-executables-have-shebangs
+  - id: check-json
+  - id: check-merge-conflict
+  - id: check-symlinks
+  - id: end-of-file-fixer
+  - id: fix-encoding-pragma
+- repo: https://github.com/pre-commit/mirrors-yapf
+  rev: master
+  hooks:
+  - id: yapf
+    files: \.(py)$

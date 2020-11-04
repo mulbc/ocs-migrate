@@ -34,7 +34,6 @@ cp test-config.yml.sample test-config.yml
 
 This file contains configuration for different stages. Follow the comments in the file to configure your tests.
 
-
 ## Stage 1 tests
 
 To run Stage 1 tests:
@@ -46,8 +45,9 @@ ansible-playbook 1_pvc_data_gen_test.yml
 ## Stage 2 tests
 
 Prior to running Stage 2 tests, ensure:
+
 * Stage 1 tests are run
-* Valid Storage Class mappings are provided in `test-config.yml` 
+* Valid Storage Class mappings are provided in `test-config.yml`
 
 To run Stage 2 tests:
 
@@ -58,8 +58,9 @@ ansible-playbook 2_pvc_destination_gen_test.yml
 ## Stage 3 tests
 
 Prior to running Stage 3 tests, ensure:
+
 * Stage 2 tests are run
-* Valid SSH public and private key paths are provided in `test-config.yml` 
+* Valid SSH public and private key paths are provided in `test-config.yml`
 
 To run Stage 3 tests:
 

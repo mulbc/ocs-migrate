@@ -4,7 +4,7 @@
    - name: "Verify required variables are defined"
      assert:
        that:
-         - pvc_data_filepath is defined 
+         - pvc_data_filepath is defined
 
    - name: Ensure pvc data file exists
      stat:
@@ -16,7 +16,7 @@
 
    - fail:
        msg: "PVC data generated from Stage 1 was not found. Exiting..."
-     when: p.stat.exists == False
+     when: not p.stat.exists
 
    - name: Ensure namespace data file exists
      stat:

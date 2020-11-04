@@ -26,7 +26,7 @@ metadata:
 spec:
   volumes:
 {% for i in range(number_of_files) %}
-  - name: "vol-{{ i }}" 
+  - name: "vol-{{ i }}"
     persistentVolumeClaim:
       claimName: "pvc-{{ i }}"
 {% endfor %}

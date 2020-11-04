@@ -1,0 +1,4 @@
+transfer_pod_wait_retries: 200
+transfer_svc_wait_retries: 600
+transfer_pod_delete_wait_retries: 200
+transfer_svc_delete_wait_retries: 200

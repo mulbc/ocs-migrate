@@ -28,7 +28,7 @@ Note: The default rsync flags are stored [here](../3_run_rsync/defaults.yml)
 
 ### Enable ansible profile_tasks
 
-The ansible profile_tasks callback enables timers for all tasks being run, useful for timing the rsync transfers on stage 3. You can whitelist it on ansible.cfg by adding: 
+The ansible profile_tasks callback enables timers for all tasks being run, useful for timing the rsync transfers on stage 3. You can whitelist it on ansible.cfg by adding:
 ```
 [defaults]
 callback_whitelist = profile_tasks

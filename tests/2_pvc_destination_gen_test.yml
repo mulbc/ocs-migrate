@@ -87,10 +87,9 @@
       assert:
         that:
         - pvc_info.get('resources', []) | length == expected_vars.number_of_files
-    
+
     - name: "Verifying whether the right pvcs are created on destination"
       assert:
         that:
         - pvc_info.get('resources', [])[item|int].get('metadata', {}).get('name', '') == "pvc-{{ item }}"
       with_sequence: start=0 end={{ expected_vars.number_of_files|int - 1 }}
-

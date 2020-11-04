@@ -28,9 +28,9 @@ Host ${BASTION_HOST}
     ControlMaster auto
     ControlPath ${HOME}/.ssh/ansible-%r:%h:%p
     ControlPersist 5m
-```  
+```
 
-Additionally, we configure Ansible to use the the above configuration along with some additional options in `ansible.cfg` 
+Additionally, we configure Ansible to use the the above configuration along with some additional options in `ansible.cfg`
 
 ```sh
 [ssh_connection]
@@ -54,4 +54,3 @@ control_path = ${HOME}/.ssh/ansible-%%r@%%h:%%p
 
 
 In progress...
-  
