@@ -11,10 +11,12 @@
 - name: "Convert storage class"
   vars:
     mig_converted_sc:
-      storage_class: "{{ mig_storage_class_mappings.get(item.storage_class+'_'+('RWX' if 'ReadWriteMany' in item.access_modes else ('ROX' if 'ReadOnlyMany' in item.access_modes else 'RWO')), item.storage_class)}}"
+      storage_class: "{{ mig_storage_class_mappings.get(my_item.storage_class+'_'+('RWX' if 'ReadWriteMany' in my_item.access_modes else ('ROX' if 'ReadOnlyMany' in my_item.access_modes else 'RWO')), my_item.storage_class)}}"
   set_fact:
-    mig_dest_pvc_data: "{{ mig_dest_pvc_data + [(item | combine(mig_converted_sc, recursive=true))] }}"
+    mig_dest_pvc_data: "{{ mig_dest_pvc_data + [(my_item | combine(mig_converted_sc, recursive=true))] }}"
   loop: "{{ pvcs }}"
+  loop_control:
+    loop_var: my_item
 
 - block:
   - name: "Check if adjustment report file exists"
@@ -44,6 +46,8 @@
 - name: "Ensure the pvcs are created on destination"
   include_tasks: tasks/ensure-pvc.yml
   loop: "{{ mig_dest_adjusted_pvc_data }}"
+  loop_control:
+    loop_var: outer_item
   tags:
   - create_pvcs_on_destination
 
