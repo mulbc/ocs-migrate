@@ -9,7 +9,7 @@
     - test
     - test_verification
     block:
-    - include_vars: 
+    - include_vars:
         file: "../benchmarks/DataGenerator/default.yml"
         name: expected_vars
 
@@ -22,7 +22,7 @@
       register: kubeconfig
 
     - when:
-      - not kubeconfig.stat.exists 
+      - not kubeconfig.stat.exists
       fail:
         msg: "Test validation failed. Kubeconfig not found. Please save destination kubeconfig in `dest.config` file for Stage 3 tests."
 
@@ -40,7 +40,7 @@
 
     - fail:
         msg: |
-          Stage 3 execution failed with error - 
+          Stage 3 execution failed with error -
           {{ stage_3_results.stdout }}
       when: stage_3_results.rc != 0
 
@@ -83,4 +83,3 @@
           that:
           - success_data[item|int].get('name', '') == "pvc-{{ item }}"
         with_sequence: start=0 end={{ expected_vars.number_of_files|int - 1 }}
-

@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ pod_name }}"
+  namespace: "{{ item.pvc_namespace }}"
+  labels:
+    target: "{{ pvc.pvc_name }}"
+    purpose: rsync
+    owner: ocs-migrate
+spec:
+  template:
+    spec:
+      volumes:
+      - name: source
+        persistentVolumeClaim:
+          claimName: "{{ pvc.pvc_name }}"
+      - name: destination
+        persistentVolumeClaim:
+          claimName: "{{ pvc.pvc_name }}-ocs"
+      containers:
+      - name: rsync
+        resources:
+          limits:
+            cpu: "{{ transfer_pod_cpu_limits }}"
+            memory: "{{ transfer_pod_mem_limits }}"
+          requests:
+            cpu: "{{ transfer_pod_cpu_requests }}"
+            memory: "{{ transfer_pod_mem_requests }}"
+        imagePullPolicy: Always
+        image: "{{ transfer_pod_image }}"
+        volumeMounts:
+        - mountPath: /source
+          name: source
+        - mountPath: /destination
+          name: destination

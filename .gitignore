@@ -11,3 +11,4 @@ env
 
 3_run_rsync/files/*.crt
 3_run_rsync/files/*.key
+.vscode/.ropeproject/

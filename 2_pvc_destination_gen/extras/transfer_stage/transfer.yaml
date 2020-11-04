@@ -5,8 +5,8 @@
 #    mig_source_host : IP address to connect to
 #    mig_dest_ssh_private_key : SSH key to connect to destination
 #
-#  Output : 
-#    zero     :  if successful transfer 
+#  Output :
+#    zero     :  if successful transfer
 #    non-zero :  if unsuccessful transfer
 
 - hosts: "{{ mig_source_host }}"
@@ -23,7 +23,7 @@
       src: "{{ mig_dest_ssh_private_key }}"
       dest: "{{ mig_dest_ssh_key_remote_location }}"
       mode: "0600"
-    
+
   - name: "Running transfer"
     shell: "rsync --partial -aPvvcO {{ mig_source_data_location }} -e 'ssh -o StrictHostKeyChecking=no -i {{ mig_dest_ssh_key_remote_location }}' root@{{ mig_dest_service_url }}:{{ mig_dest_data_location }}"
 
