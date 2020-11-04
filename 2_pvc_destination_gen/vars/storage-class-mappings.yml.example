@@ -1,3 +1,7 @@
+# This file contains a mapping of source and target namespaces
+# Format:
+# SourceNamespace_AccessMode: TargetNamespace
+
 mig_storage_class_mappings:
   glusterfs-storage_RWO: ocs-storagecluster-ceph-rbd
   glusterfs-storage_RWX: ocs-storagecluster-cephfs

@@ -1,3 +1,4 @@
+# This file lists all the namespaces that should be migrated
 namespaces_to_migrate:
  - rocket-chat
  - nginx-pv
