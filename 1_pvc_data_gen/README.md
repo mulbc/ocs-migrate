@@ -20,6 +20,12 @@ namespaces_to_migrate:
 - mssql-persistent
 ```
 
+1. Activate the python virtualenv
+
+```bash
+source ../env/bin/activate
+```
+
 1. Make sure you are connected to the cluster with your CLI tools, then run stage 1
 
 ```bash

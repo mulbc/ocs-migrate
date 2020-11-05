@@ -1,3 +1,4 @@
+#!/bin/env python3
 # -*- coding: utf-8 -*-
 import json
 import yaml
@@ -6,6 +7,7 @@ import os
 import re
 from kubernetes import config
 from openshift.dynamic import DynamicClient
+from termcolor import colored
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -15,7 +17,7 @@ try:
     k8s_client = config.new_client_from_config()
     dyn_client = DynamicClient(k8s_client)
 except Exception:
-    print("\n[!] Failed while setting up OpenShift client. Ensure KUBECONFIG is set. ")
+    print(colored("\n [!]", "red"), "Failed while setting up OpenShift client. Ensure KUBECONFIG is set. ")
     exit(1)
 
 
@@ -47,24 +49,24 @@ for namespace in data['namespaces_to_migrate']:
         ns_out = {'namespace': namespace, 'annotations': ns.metadata.get("annotations", emptyDict).__dict__}
         verified_namespaces.append(ns_out)
     except Exception:
-        print("\n[!] v1/namespace not found: {}\n".format(namespace))
+        print(colored("\n [!]", "red"), "v1/namespace not found: {}\n".format(namespace))
 
 ns_data_file = os.path.join(output_dir, 'namespace-data.json')
 with open(ns_data_file, 'w') as f:
     json.dump(verified_namespaces, f, indent=4)
-    print("[✓] Wrote {}".format(ns_data_file))
+    print(colored("[✓]", "green"), "Wrote {}".format(ns_data_file))
 
 pvc_data = []
 
 # Generate data for pvc-data.json and node-list.json
 for namespace in verified_namespaces:
-    print("Processing PVCs for namespace: [{}]".format(namespace))
+    print("Processing PVCs for namespace: [{}]".format(namespace['namespace']))
 
     v1_pods = dyn_client.resources.get(api_version='v1', kind='Pod')
-    pod_list = v1_pods.get(namespace=namespace)
+    pod_list = v1_pods.get(namespace=namespace['namespace'])
 
     v1_pvcs = dyn_client.resources.get(api_version='v1', kind='PersistentVolumeClaim')
-    pvc_list = v1_pvcs.get(namespace=namespace)
+    pvc_list = v1_pvcs.get(namespace=namespace['namespace'])
     namespaced_pvcs = []
     for pvc in pvc_list.items:
 
@@ -150,9 +152,9 @@ for namespace in verified_namespaces:
 pvc_data_file = os.path.join(output_dir, 'pvc-data.json')
 with open(pvc_data_file, 'w') as f:
     ns_data = json.dump(pvc_data, f, indent=4)
-    print("[✓] Wrote {}".format(pvc_data_file))
+    print(colored("[✓]", "green"), "Wrote {}".format(pvc_data_file))
 
 node_data_file = os.path.join(output_dir, 'node-list.json')
 with open(node_data_file, 'w') as f:
     ns_data = json.dump(node_list, f, indent=4)
-    print("[✓] Wrote {}".format(node_data_file))
+    print(colored("[✓]", "green"), "Wrote {}".format(node_data_file))
