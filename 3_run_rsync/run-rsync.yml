@@ -6,16 +6,18 @@
   tasks:
     - import_tasks: ../common/assert-kubeconfig.yml
       tags:
-      - assert_kubeconfig
+        - assert_kubeconfig
+        - precheck
 
     - import_tasks: ../common/assert-vars.yml
+      tags: precheck
 
     - name: Load pvc data from output file
       tags:
-      - load_vars
+        - load_vars
       set_fact:
         pvc_data: "{{ lookup('file', pvc_data_filepath) | from_json }}"
 
-    - name: "Create pod and service - one namespace at a time"
+    - name: "Create migration jobs - one namespace at a time"
       include_tasks: tasks/create-rsync-jobs.yml
       with_items: "{{ pvc_data }}"

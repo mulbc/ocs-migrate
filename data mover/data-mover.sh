@@ -18,7 +18,7 @@ check_if_block_device() {
 if (check_if_mount "/source" && check_if_mount "/destination"); then
     cd /source || exit
     # Use find & xargs to do rsync in parallel
-    find . -print0 | xargs --null --max-args=50 --max-procs=10 -I {} rsync {} /destination
+    rsync -r . /destination
 elif (check_if_block_device "/source" && check_if_block_device "/destination"); then
     rsync --sparse --copy-devices --progress /source /destination
 else

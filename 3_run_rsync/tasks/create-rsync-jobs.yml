@@ -3,55 +3,24 @@
 
 - debug: msg="{{ item }}"
 
-- name: Loop over every PVC
+- name: Start one Job per PVC we want to migrate
   loop: "{{ item.pvcs }}"
   loop_control:
     loop_var: pvc
-  block:
-    - debug:
-        msg: "{{ lookup('template', 'job.yml.j2') }}"
-
-    - name: Create a pod for rsync
-      k8s:
-        state: present
-        definition: "{{ lookup('template', 'job.yml.j2') }}"
-
-    - name: Wait for pod to be running
-      k8s_info:
-        api_version: v1
-        kind: pod
-        name: "{{ pvc.pod_name }}"
-        namespace: "{{ pvc.pvc_namespace }}"
-      register: pod
-      until: "'Running' in (pod | json_query('resources[].status.phase'))"
-      retries: "{{ transfer_pod_wait_retries }}"
-      delay: 3
+  k8s:
+    state: present
+    definition: "{{ lookup('template', 'job.yml.j2') }}"
 
 # - set_fact:
 #     failed_pvcs: []
 #     successful_pvcs: []
 
 
-- name: Loop over every PVC
+- name: Wait until all Jobs are finished
   loop: "{{ item.pvcs }}"
   loop_control:
     loop_var: pvc
-  block:
-    - name: Cleanup the transfer pod for rsync
-      k8s:
-        state: absent
-        definition: "{{ lookup('template', 'job.yml.j2') }}"
-
-    - name: Wait for pod to be deleted
-      k8s_info:
-        api_version: v1
-        kind: pod
-        name: "{{ pvc.pod_name }}"
-        namespace: "{{ pvc.pvc_namespace }}"
-      register: p
-      until: "{{ p.resources | length == 0 }}"
-      retries: "{{ transfer_pod_delete_wait_retries }}"
-      delay: 3
+  include_tasks: wait_for_job.yml
 
 # - name: "Printing failed / succeded pvcs"
 #   debug:
