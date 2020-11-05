@@ -3,12 +3,12 @@ kind: PersistentVolumeClaim
 metadata:
   finalizers:
   - kubernetes.io/pvc-protection
-  name: "{{ outer_item.pvc_name }}"
+  name: "{{ outer_item.pvc_name }}-ocs"
   namespace: "{{ outer_item.pvc_namespace }}"
 spec:
   accessModes: {{ outer_item.access_modes | to_yaml }}
   resources:
     requests:
       storage: "{{ outer_item.capacity }}"
-  storageClassName: "{{ outer_item.storage_class }}"
+  storageClassName: "{{ outer_item.storage_class | default('ocs-storagecluster-ceph-rbd') }}"
   volumeMode: Filesystem
