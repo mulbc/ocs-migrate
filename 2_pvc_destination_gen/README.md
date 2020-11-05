@@ -34,20 +34,18 @@ This is the final sub-stage where `pvc-migrate` will read the output from `Stage
     cp vars/storage-class-mappings.yml.example vars/storage-class-mappings.yml
     ```
 
-2. Set storage class mappings in `vars/storage-class-mappings.yml`, following directions in [sc-selection.md](../docs/sc-selection.md)
+1. Set storage class mappings in `vars/storage-class-mappings.yml`, following directions in [sc-selection.md](../docs/sc-selection.md)
 
     ```yaml
-    # Sample mappings for glusterfs -> cephfs migration
     mig_storage_class_mappings:
-      glusterfs-storage_RWO: ocs-storagecluster-ceph-rbd
-      glusterfs-storage_RWX: ocs-storagecluster-cephfs
-      glusterfs-storage-block_RWO: ocs-storagecluster-ceph-rbd
+    thin_RWO: ocs_storagecluster-ceph-rbd
+    gp2_RWO: ocs-storagecluster-ceph-rbd
+    nfs_RWX: ocs-storagecluster-cephfs
     ```
 
-3. Run `Stage 2 (a)` while KUBECONFIG is set for connection to **destination cluster**
+1. Run `Stage 2 (a)`
 
     ```bash
-    export KUBECONFIG="/path/to/destination_cluster_kubeconfig"
     ansible-playbook pvc-destination-gen.yml --tags stage_a
     ```
 
@@ -71,18 +69,16 @@ This is the final sub-stage where `pvc-migrate` will read the output from `Stage
 
     In the above example, the volume on the source was full. Therefore, `pvc-migrate` grew the volume and rounded the value to the nearest possible value maintaining the original size unit `Gi`.
 
-4. Run `Stage 2 (b)` while KUBECONFIG is set for connection to **destination cluster**
+1. Run `Stage 2 (b)`
 
     ```bash
-    export KUBECONFIG="/path/to/destination_cluster_kubeconfig"
     ansible-playbook pvc-destination-gen.yml --tags stage_b
     ```
 
-5. Verify that PVCs are created on destination
+1. Verify that PVCs are created on destination
 
     ```bash
-    export KUBECONFIG="/path/to/destination_cluster_kubeconfig"
     oc get pvc -n sample-namespace
     ```
 
-6. Move on to [Stage 3](../3_run_rsync)
+1. Move on to [Stage 3](../3_run_rsync)
