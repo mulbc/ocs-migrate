@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: "mig-{{ pvc.pvc_name }}"
-  namespace: "{{ item.namespace }}"
+  namespace: "{{ pvc.pvc_namespace }}"
   labels:
     target: "{{ pvc.pvc_name }}"
     purpose: rsync
