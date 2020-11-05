@@ -7,17 +7,16 @@
     - import_tasks: ../common/assert-kubeconfig.yml
       tags:
       - assert_kubeconfig
-      - stage_a
+      - precheck
       - stage_b
 
     - import_tasks: ../common/assert-vars.yml
       tags:
-      - stage_a
       - stage_b
 
     - tags:
       - assert_sc_mapping
-      - stage_a
+      - precheck
       - stage_b
       block:
         - name: "Get list of user provided destination storage-classes"
@@ -30,7 +29,7 @@
             kind: StorageClass
           register: storage_classes
 
-        - name: "Create list of storage classes available"
+        - name: "Create list of available storage classes"
           vars:
             available_storage_classes: []
           set_fact:
@@ -43,48 +42,35 @@
 
     - tags:
       - load_vars
-      - stage_a
       - stage_b
       set_fact:
         pvc_data: "{{ lookup('file', pvc_data_filepath) | from_json }}"
-        namespace_data: "{{ lookup('file', namespace_data_filepath) | from_json }}"
 
-    - tags:
-      - adjust_pvs
-      - stage_a
-      block:
-      - set_fact:
-          unique_nodes: "{{ pvc_data | json_query('[*].pvcs[*].node_name') | flatten | unique }}"
-          adjusted_volumes: []
-
-      - include_tasks: ./tasks/adjust-pvs.yml
-        loop: "{{ unique_nodes }}"
-        loop_control:
-          loop_var: node_name
-
-      - name: "Dumping adjusted volumes in the output directory"
-        copy:
-          content: "{{ adjusted_volumes | to_nice_json }}"
-          dest: "{{ pv_size_adjustment_report_path }}"
-
-    - name: "Ensure the namespaces are created for the pvcs"
-      k8s:
-        state: present
-        definition: "{{ lookup('template', 'namespace.yml.j2') }}"
-      loop: "{{ namespace_data }}"
-      tags:
-      - ensure_ns
-      - stage_b
+    - name: "Convert storage class"
+      vars:
+        mig_converted_sc:
+          storage_class: "{{-
+            mig_storage_class_mappings.get(
+            my_item.1.storage_class+'_'+('RWX' if 'ReadWriteMany' in my_item.1.access_modes
+                                   else ('ROX' if 'ReadOnlyMany' in my_item.1.access_modes
+                                   else  'RWO')),
+            'ocs-storagecluster-ceph-rbd')
+            -}}"
+      set_fact:
+        mig_dest_pvc_data: "{{ mig_dest_pvc_data + [(my_item.1 | combine(mig_converted_sc, recursive=true))] }}"
+      loop: "{{ pvc_data|subelements('pvcs') }}"
+      loop_control:
+        loop_var: my_item
 
     - name: "Create pvcs on destination namespace"
-      vars:
-        pvcs: "{{ item.pvcs }}"
       include_tasks:
-        file: tasks/ensure-pvcs.yml
+        file: tasks/ensure-pvc.yml
         apply:
           tags:
           - ensure_pvcs
           - stage_b
-      loop: "{{ pvc_data }}"
+      loop: "{{ mig_dest_pvc_data }}"
+      loop_control:
+        loop_var: outer_item
       tags:
       - stage_b
