@@ -1,0 +1,22 @@
+
+- name: Wait Until Job Is Done
+  k8s_facts:
+    name: "mig-{{ pvc.pvc_name }}"
+    kind: Job
+    namespace: "{{ item.namespace }}"
+  register: job_status
+  until: job_status.resources[0].status.active != 1
+  retries: 1000
+  delay: 10
+  ignore_errors: yes
+
+- name: Get Final Job Status
+  k8s_facts:
+    name: "mig-{{ pvc.pvc_name }}"
+    kind: Job
+    namespace: "{{ item.namespace }}"
+  register: job_status
+
+- fail:
+    msg: "Job Has Been Failed!"
+  when: not job_status.resources[0].status.succeeded

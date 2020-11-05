@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ pod_name }}"
-  namespace: "{{ item.pvc_namespace }}"
+  name: "mig-{{ pvc.pvc_name }}"
+  namespace: "{{ item.namespace }}"
   labels:
     target: "{{ pvc.pvc_name }}"
     purpose: rsync
@@ -10,6 +10,7 @@ metadata:
 spec:
   template:
     spec:
+      restartPolicy: Never
       volumes:
       - name: source
         persistentVolumeClaim:
@@ -21,11 +22,11 @@ spec:
       - name: rsync
         resources:
           limits:
-            cpu: "{{ transfer_pod_cpu_limits }}"
-            memory: "{{ transfer_pod_mem_limits }}"
+            cpu: {{ transfer_pod_cpu_limits }}
+            memory: {{ transfer_pod_mem_limits }}
           requests:
-            cpu: "{{ transfer_pod_cpu_requests }}"
-            memory: "{{ transfer_pod_mem_requests }}"
+            cpu: {{ transfer_pod_cpu_requests }}
+            memory: {{ transfer_pod_mem_requests }}
         imagePullPolicy: Always
         image: "{{ transfer_pod_image }}"
         volumeMounts:
