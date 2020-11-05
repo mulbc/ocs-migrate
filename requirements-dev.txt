@@ -1,0 +1,4 @@
+ansible-lint==4.3.7
+flake8==3.8.4
+pre-commit==2.8.2
+yapf==0.30.0
