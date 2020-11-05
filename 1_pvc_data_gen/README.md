@@ -1,10 +1,10 @@
 # Stage 1: pvc-data-gen
 
-This playbook scans source cluster PVCs in a `namespaces_to_migrate` list provided by the user and generates info needed by stage 2 for destination cluster PVC creation and data sync.
+This playbook scans source cluster PVCs in a `namespaces_to_migrate` list provided by the user and generates info needed by stage 2 for OCS PVC creation and data sync.
 
 ## Usage
 
-1. Before running stage 1, ensure you have completed [prerequisite steps](https://github.com/konveyor/pvc-migrate#prerequisite-steps) and have installed required [automation prerequisites](https://github.com/konveyor/pvc-migrate#2-automation-prerequisites).
+1. Before running stage 1, ensure you have completed [prerequisite steps](https://github.com/mulbc/ocs-migrate#prerequisite-steps) and have installed required [automation prerequisites](https://github.com/mulbc/ocs-migrate#2-automation-prerequisites).
 
 1. Create your own copy of vars file
 
@@ -20,10 +20,9 @@ namespaces_to_migrate:
 - mssql-persistent
 ```
 
-1. Run script while KUBECONFIG is set for connection to **source cluster**
+1. Make sure you are connected to the cluster with your CLI tools, then run stage 1
 
 ```bash
-export KUBECONFIG="/path/to/src_cluster_kubeconfig"
 python3 pvc_data_gen.py
 ```
 

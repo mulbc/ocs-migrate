@@ -1,14 +1,13 @@
-# pvc-migrate
+# OCS-migrate
 
 ## Overview
 
-`pvc-migrate` automates migration of PersistentVolumeClaims (PVCs) and PersistentVolumes (PVs) from OCP 3.x to OCP 4.x.
+`ocs-migrate` automates migration of PersistentVolumeClaims (PVCs) and PersistentVolumes (PVs) from any storage provider to OCS
 
 ### Prerequisite steps
 
 * The application on the source side needs to be quiesced before attempting migration
 * PVs to be migrated need to be attached with pods, unattached PVs will not be migrated
-* SSH Connection to 3.x Clusters need to be configured - [Instructions](./docs/inventory-notes.md)
 * Storage Class Selections must be made - [Instructions](./docs/sc-selection.md)
 
 ## Usage
@@ -16,8 +15,7 @@
 ### 1. Clone this git repo
 
 ```bash
-git clone https://github.com/konveyor/pvc-migrate && cd pvc-migrate
-git checkout <version>
+git clone https://github.com/mulbc/ocs-migrate && cd ocs-migrate
 ```
 
 ### 2. Automation prerequisites
@@ -66,21 +64,11 @@ sudo dnf install dnsutils
 sudo dnf install python3-libselinux
 ```
 
-### 3. Set cluster authentication details
-
-**Copy source and destination cluster KUBECONFIG files authenticated with  *cluster-admin* privileges to `auth` directory**
-
-   1. Create `auth` directory inside of repository root: `mkdir auth`
-
-   1. Copy source cluster kubeconfig to `auth/KUBECONFIG_SRC`
-
-   1. Copy destination cluster kubeconfig to `auth/KUBECONFIG_TARGET`
-
 ### 4. Set list of namespaces to migrate PVC data for
 
-   1. Copy sample config file as starting point: `cp 1_pvc_data_gen/vars/pvc-data-gen.yml.example 1_pvc_data_gen/vars/pvc-data-gen.yml`
+1. Copy sample config file as starting point: `cp 1_pvc_data_gen/vars/pvc-data-gen.yml.example 1_pvc_data_gen/vars/pvc-data-gen.yml`
 
-   1. Edit `1_pvc_data_gen/vars/pvc-data-gen.yml` , adding list of namespaces for which PV/PVC data should be migrated
+1. Edit `1_pvc_data_gen/vars/pvc-data-gen.yml`, adding the list of namespaces for which PV/PVC data should be migrated
 
 ```yaml
 namespaces_to_migrate:
@@ -96,54 +84,31 @@ The `pvc-migrate` tooling is designed to work in 3 stages :
 
 `1_pvc_data_gen`
 
-This preliminary stage collects information about PVCs, PVs and Pods from the Source cluster. It creates a JSON report of collected data which will be consumed by subsequent stages.
+This preliminary stage collects information about PVCs, PVs and Pods that are to be migrated. It creates a JSON report of collected data which will be consumed by subsequent stages.
 
-**Note**: changes to the source cluster after completion of Stage 1 will not be considered by next stages. You can re-run stage 1 to refresh data as needed before running Stages 2 and 3.
+**Note**: Changes of source PVs and PVCs after completion of Stage 1 will not be considered by next stages. You can re-run stage 1 to refresh data as needed before running Stages 2 and 3.
 
 #### Stage 2 - Migrate PVC definitions to destination cluster ([Stage 2 README](2_pvc_destination_gen))
 
 `2_pvc_destination_gen`
 
-This stage translates and migrates PVC resource definitions from the source to the destination cluster.
+This stage creates the target PVs and PVCs on OCS where the data will be migrated to. No data will be moved in this stage yet.
 
-**Note**: after completion of this stage, you will have PVCs created on the destination cluster which _may_ or _may not_ be `Bound` . This is expected as some provisioners do not create PVs until PVCs are bound to pods. This stage __requires__ users to provide Storage Class selections for the destination cluster. Please see notes on [Storage Class Selection](./docs/sc-selection.md)
+**Note**: This stage __requires__ users to provide Storage Class selections. Please see notes on [Storage Class Selection](./docs/sc-selection.md)
 
 #### Stage 3 - RSync PVC data to destination cluster ([Stage 3 README](3_run_rsync))
 
 `3_run_rsync`
 
-This final stage launches pods to attach with the PVCs created in the previous stage.
+This final stage migrates data from the source PVs to the target PVs. In order to do this, it launches Kubernetes Jobs that migrate the data.
+All PVs in a namespace will be migrated in parallel, namespaces will be done synchroneously.
 
-* Each PVC is attached to its own dummy pod. The pods have `rsync` and `ssh` installed.
-* The tooling then uses `rsync` from source side to sync files to the PVs mounted on Pods in the destination side.
+*Note*: This stage __requires__ that the applications connected to the source PVCs are shut down during the migration phase. Only then, you will be sure to have a consistent data migration.
 
-*Note*: This stage __requires__ users to provide node info on the source cluster. Please see notes on [Configuring SSH and Inventory for Stage 3](./docs/inventory-notes.md)
+After this step, your applications will need to be re-configured to use the new PVCs. The new PVCs will have the same name as the source PVCs, but with `-ocs` appended.
 
 ### 6. Running the PVC migration
 
 1. Run steps in: [1_pvc_data_gen/README.md](1_pvc_data_gen)
 1. Run steps in: [2_pvc_destination_gen/README.md](2_pvc_destination_gen)
 1. Run steps in: [3_run_rsync/README.md](3_run_rsync)
-
-### 7. Run CAM in "no PVC migration" mode
-
-   1. Your PV/PVC data has been migrated. You can use CAM to migrate the remaining OpenShift resources, which will connect to the PV/PVC data created by this tool.
-   2. To run CAM in "no PVC migration" mode, modify the `MigrationController` resource on the *destination cluster* by swapping out the mig-controller image, then execute a migration as usual. The PVC migration steps will be skipped, but all other resources will be migrated, and workloads will connect back to the newly provisioned PVCs..
-
-      ```bash
-      oc edit MigrationController -n openshift-migration
-      ```
-
-      ```yaml
-      apiVersion: migration.openshift.io/v1alpha1
-      kind: MigrationController
-      metadata:
-      name: migration-controller
-      namespace: openshift-migration
-      spec:
-      [...]
-      mig_controller_image_fqin: quay.io/konveyor/mig-controller:release-1.2.2-hotfix-nopvs
-      [...]
-      ```
-
-   3. Create a MigPlan and MigMigration covering the same namespaces migrated with `pvc-migrate`.
